@@ -4,4 +4,10 @@
     <Application.Styles>
         <FluentTheme Mode="Light"/>
     </Application.Styles>
+  
+  <Application.Resources>
+    <Color x:Key="MainColor">#ffffff</Color>
+    <Color x:Key="AdditionalColor">#76e383</Color>
+    <Color x:Key="AttentionalColor">#498c51</Color>
+  </Application.Resources>
 </Application>

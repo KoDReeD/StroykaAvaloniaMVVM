@@ -2,33 +2,42 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:local="clr-namespace:Microsoft.VisualBasic;assembly=Microsoft.VisualBasic.Core"
+        mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="450"
         x:Class="DemoMVVM.Views.MainWindow"
         Title="MainWindow">
   <Grid RowDefinitions="50,*,50">
-    <StackPanel Orientation="Horizontal"
-                VerticalAlignment="Center"
-                Margin="60,0,0,0" Spacing="10">
-      <TextBox Height="30" Width="200"
-               Text="{Binding SeachText, Mode=TwoWay}">
-      </TextBox>
+    <Grid Background="{DynamicResource AdditionalColor}">
+      <StackPanel Orientation="Horizontal"
+                  VerticalAlignment="Center"
+                  Margin="50,0,0,0" Spacing="10">
+        
+        <Button Content="Назад"
+                Background="{DynamicResource AttentionalColor}">
+          
+        </Button>
+        
+        <TextBox Height="30" Width="200"
+                 Text="{Binding SeachText, Mode=TwoWay}">
+        </TextBox>
 
-      <ComboBox Width="200"
-                SelectedItem="{Binding SelectedManufacturer}"
-                Items="{Binding Manufacturers}">
-        <ComboBox.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding Organizationname}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-      
-      <ComboBox Width="200" SelectedIndex="{Binding SelectedSortIndex}">
-        <ComboBoxItem>По возрастанию</ComboBoxItem>
-        <ComboBoxItem>По убыванию</ComboBoxItem>
-      </ComboBox>
+        <ComboBox Width="200"
+                  SelectedItem="{Binding SelectedManufacturer}"
+                  Items="{Binding Manufacturers}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Organizationname}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
 
-    </StackPanel>
+        <ComboBox Width="200" SelectedIndex="{Binding SelectedSortIndex}">
+          <ComboBoxItem>По возрастанию</ComboBoxItem>
+          <ComboBoxItem>По убыванию</ComboBoxItem>
+        </ComboBox>
+
+      </StackPanel>
+    </Grid>
 
     <Grid Grid.Row="1">
       <ProgressBar VerticalAlignment="Center"
@@ -36,52 +45,88 @@
                    IsVisible="{Binding IsLoading}"
                    Classes="progressBar" IsIndeterminate="True" />
 
-      <ListBox Items="{Binding Products}"
-               IsVisible="{Binding !IsLoading}"
-               Width="700">
-        <ListBox.ItemTemplate>
-          <DataTemplate>
-            <Border Background="{Binding ColorBack}" Height="150">
-              <StackPanel Orientation="Horizontal" Margin="10">
-                <Image Source="{Binding ProductPhoto}"
-                       Height="120" Width="120">
-                </Image>
-                <StackPanel Margin="10,0,0,0">
-                  <TextBlock FontWeight="Bold" 
-                             TextWrapping="Wrap"
-                             Text="{Binding Product.Productname}"></TextBlock>
-                  <StackPanel Orientation="Horizontal">
-                    <TextBlock TextDecorations="Strikethrough" 
-                               IsVisible="{Binding HasDiscount}"
-                               Margin="0,0,10,0"
-                               Text="{Binding OldPrice}"></TextBlock>
-                    <TextBlock Text="{Binding CurrentPrice, StringFormat={}{0:F2} рублей}"></TextBlock>
-                  </StackPanel>
-                  <TextBlock Text="{Binding Product.Productdiscountamount, StringFormat={}скидка {0} %}"></TextBlock>
-                  <TextBlock Text="{Binding Product.ProductmanufacturerNavigation.Organizationname, StringFormat={}производитель: {0}}"></TextBlock>
+      <Grid ColumnDefinitions="70,*,70"
+            ShowGridLines="False"
+            IsVisible="{Binding !IsLoading}">
+        <Button Command="{Binding PrevPage}"
+                HorizontalAlignment="Left"
+                Grid.Column="0"
+                Margin="10,0,0,0">
+          ПРЕД
+        </Button>
 
-                  <StackPanel Orientation="Horizontal"
-                              Spacing="10" Margin="0,10,0,0">
-                    <Button Content="Удалить"
-                            Command="{Binding DataContext.DeleteItemCommand, 
-                        RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
-                            CommandParameter="{Binding}" />
+        <ListBox Items="{Binding Products}"
+                 HorizontalAlignment="Center"
+                 Grid.Column="1"
+                 Width="700">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Border Background="{Binding ColorBack}" Height="150">
+                <StackPanel Orientation="Horizontal" Margin="10">
+                  <Image Source="{Binding ProductPhoto}"
+                         Height="120" Width="120">
+                  </Image>
+                  <StackPanel Margin="10,0,0,0">
+                    <TextBlock FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               Text="{Binding Product.Productname}">
+                    </TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock TextDecorations="Strikethrough"
+                                 IsVisible="{Binding HasDiscount}"
+                                 Margin="0,0,10,0"
+                                 Text="{Binding OldPrice}">
+                      </TextBlock>
+                      <TextBlock Text="{Binding CurrentPrice, StringFormat={}{0:F2} рублей}"></TextBlock>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Product.Productdiscountamount, StringFormat={}скидка {0} %}"></TextBlock>
+                    <TextBlock
+                      Text="{Binding Product.ProductmanufacturerNavigation.Organizationname, StringFormat={}производитель: {0}}">
+                    </TextBlock>
 
-                    <Button Content="Редактировать"
-                            Command="{Binding DataContext.DeleteItemCommand, 
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="10" Margin="0,10,0,0">
+                      <Button Content="Удалить"
+                              Background="{DynamicResource AttentionalColor}"
+                              Command="{Binding DataContext.DeleteItemCommand, 
                         RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
-                            CommandParameter="{Binding}" />
+                              CommandParameter="{Binding}" />
+
+                      <Button Content="Редактировать"
+                              Background="{DynamicResource AttentionalColor}"
+                              Command="{Binding DataContext.DeleteItemCommand, 
+                        RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
+                              CommandParameter="{Binding}" />
+                    </StackPanel>
                   </StackPanel>
                 </StackPanel>
-              </StackPanel>
-            </Border>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Button Grid.Column="2"
+                Margin="0,0,10,0"
+                Command="{Binding NextPage}"
+                HorizontalAlignment="Right">
+          СЛЕД
+        </Button>
+      </Grid>
+
     </Grid>
 
-    <TextBlock Grid.Row="2" 
-               Margin="60,0,0,0"
-               Text="{Binding ProductCount}"></TextBlock>
+    <Grid Grid.Row="2"
+          Background="{DynamicResource AdditionalColor}">
+      <StackPanel Orientation="Horizontal"
+                  Spacing="30"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
+        <TextBlock Text="{Binding ProductCount}">
+        </TextBlock>
+
+        <TextBlock Text="{Binding PageCount}">
+        </TextBlock>
+      </StackPanel>
+    </Grid>
   </Grid>
 </Window>

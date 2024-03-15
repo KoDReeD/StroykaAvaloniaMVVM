@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -18,16 +19,22 @@ public class MainViewModel : INotifyPropertyChanged
 {
     public MainViewModel()
     {
+        Page = 1;
         LoadManufacturers();
-        LoadProducts();
+        LoadDataAsync();
+    }
+    
+    private async Task LoadDataAsync()
+    {
+        await LoadProducts();
     }
 
-    public async void LoadProducts()
+    public async Task LoadProducts()
     {
         try
         {
             IsLoading = true;
-            List<Product> list = new List<Product>();
+            List<Product> list;
 
             //  определённого
             if (SelectedManufacturer != null && SelectedManufacturer.Organizationid != 0)
@@ -53,18 +60,22 @@ public class MainViewModel : INotifyPropertyChanged
                         x.Productcost.ToString().Contains(arr[i])).ToList();
                 }
             }
-            
-            var result = list
-                .Select(x => new ProductModel()
+
+            var taskList = list
+                .Select(async x => new ProductModel()
                 {
                     Product = x,
                     HasDiscount = x.Productdiscountamount > 0,
-                    ColorBack = x.Productdiscountamount > 0 ? Brushes.LightGreen : Brushes.White,
-                    ProductPhoto = GetBitmap(x.Productphoto),
+                    ColorBack = x.Productdiscountamount > 0 ? Constants.AdditionalColor : Brushes.White,
+                    ProductPhoto = await GetBitmap(x.Productphoto),
                     OldPrice = x.Productdiscountamount > 0 ? $"{x.Productcost:F2}" : "",
-                    CurrentPrice = (decimal)(x.Productdiscountamount > 0 ? x.Productcost - x.Productcost * x.Productdiscountamount / 100 : x.Productcost)
+                    CurrentPrice = (decimal)(x.Productdiscountamount > 0
+                        ? x.Productcost - x.Productcost * x.Productdiscountamount / 100
+                        : x.Productcost)
                 })
                 .ToList();
+            var taskResults = await Task.WhenAll(taskList);
+            var result = taskResults.ToList();
 
             if (SelectedSortIndex == 0)
             {
@@ -75,18 +86,27 @@ public class MainViewModel : INotifyPropertyChanged
                 result = result.OrderByDescending(result => result.CurrentPrice).ToList();
             }
 
+            _maxCount = result.Count();
+            result = result
+                .Skip((Page - 1) * _itemOnPage)
+                .Take(_itemOnPage)
+                .ToList();
+
             Products = result;
-            
+
             ProductCount = $"{result.Count} из {StroykaMvvmContext.GetContext().Products.Count()}";
+            var pageCount = _maxCount / _itemOnPage;
+            PageCount = $"{Page} стр из {(pageCount > 0 ? pageCount : 1)} стр";
             IsLoading = false;
         }
         catch (Exception e)
         {
-           
         }
     }
 
+
     private List<ProductModel> _products;
+
     public List<ProductModel> Products
     {
         get => _products;
@@ -99,10 +119,43 @@ public class MainViewModel : INotifyPropertyChanged
             }
         }
     }
-    
+
+    private int _page;
+    private int _itemOnPage = 10;
+    private int _maxCount;
+
+    public int Page
+    {
+        get => _page;
+        set
+        {
+            _page = value;
+            LoadDataAsync();
+            OnPropertyChanged();
+        }
+    }
+
+    public void NextPage()
+    {
+        var maxPage = _maxCount / 10;
+        if (Page + 1 <= maxPage)
+        {
+            Page++;
+        }
+    }
+
+    public void PrevPage()
+    {
+        if (Page - 1 > 0)
+        {
+            Page--;
+        }
+    }
+
     public ObservableCollection<Organization> Manufacturers { get; set; } = new ObservableCollection<Organization>();
-    
+
     private Organization _selectedManufacturer;
+
     public Organization SelectedManufacturer
     {
         get => _selectedManufacturer;
@@ -111,24 +164,26 @@ public class MainViewModel : INotifyPropertyChanged
             if (value != null)
             {
                 _selectedManufacturer = value;
-                LoadProducts();
+                Page = 1;
+                LoadDataAsync();
                 OnPropertyChanged();
             }
         }
     }
-    
+
     private int _selectedSortIndex = 0;
+
     public int SelectedSortIndex
     {
         get => _selectedSortIndex;
         set
         {
             _selectedSortIndex = value;
-            LoadProducts();
+            LoadDataAsync();
             OnPropertyChanged();
         }
     }
-    
+
 
     private string _productCount;
 
@@ -141,7 +196,19 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-    
+
+    private string _pageCount;
+
+    public string PageCount
+    {
+        get => _pageCount;
+        set
+        {
+            _pageCount = value;
+            OnPropertyChanged();
+        }
+    }
+
     private bool _isLoading;
 
     public bool IsLoading
@@ -155,13 +222,15 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     private string _seachText = "";
+
     public string SeachText
     {
         get => _seachText;
         set
         {
             _seachText = value;
-            LoadProducts();
+            Page = 1;
+            LoadDataAsync();
             OnPropertyChanged();
         }
     }
@@ -171,19 +240,21 @@ public class MainViewModel : INotifyPropertyChanged
         var product = (item as ProductModel).Product;
     }
 
-    private static Bitmap GetBitmap(string path)
+    private async Task<Bitmap> GetBitmap(string path)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(path)) throw new Exception();
-
-            var bit = new Bitmap(@"..\..\..\Resources\ProductPhotos\" + path);
-            return bit;
+            var bytes = File.ReadAllBytes(@"..\..\..\Resources\ProductPhotos\" + path);
+            using var memoryStream = new MemoryStream(bytes);
+            var bitmap = new Bitmap(memoryStream);
+            return bitmap;
         }
         catch (Exception e)
         {
-            var bit = new Bitmap(@"..\..\..\Resources\picture.png");
-            return bit;
+            var bytes = File.ReadAllBytes(@"..\..\..\Resources\picture.png");
+            using var memoryStream = new MemoryStream(bytes);
+            var bitmap = new Bitmap(memoryStream);
+            return bitmap;
         }
     }
 
@@ -197,7 +268,7 @@ public class MainViewModel : INotifyPropertyChanged
                 Organizationid = 0,
                 Organizationname = "Все производители"
             });
-        
+
             foreach (var item in list)
             {
                 Manufacturers.Add(item);
@@ -207,7 +278,6 @@ public class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception e)
         {
-            
         }
     }
 

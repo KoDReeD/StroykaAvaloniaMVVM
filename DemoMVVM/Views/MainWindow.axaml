@@ -35,6 +35,8 @@
           <ComboBoxItem>По возрастанию</ComboBoxItem>
           <ComboBoxItem>По убыванию</ComboBoxItem>
         </ComboBox>
+        
+        <Button Command="{Binding AddItemCommand}">Добавить</Button>
 
       </StackPanel>
     </Grid>
@@ -94,7 +96,7 @@
 
                       <Button Content="Редактировать"
                               Background="{DynamicResource AttentionalColor}"
-                              Command="{Binding DataContext.DeleteItemCommand, 
+                              Command="{Binding DataContext.EditItemCommand, 
                         RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
                               CommandParameter="{Binding}" />
                     </StackPanel>

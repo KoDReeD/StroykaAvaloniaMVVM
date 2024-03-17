@@ -11,9 +11,9 @@ public partial class Product
 
     public string Productunitmeasurement { get; set; } = null!;
 
-    public decimal Productcost { get; set; }
+    public decimal Productcost { get; set; } = 0;
 
-    public short? Productmaxdiscountamount { get; set; }
+    public short? Productmaxdiscountamount { get; set; } = 0;
 
     public int Productmanufacturer { get; set; }
 
@@ -21,7 +21,7 @@ public partial class Product
 
     public int Productcategory { get; set; }
 
-    public short? Productdiscountamount { get; set; }
+    public short? Productdiscountamount { get; set; } = 0;
 
     public int Productquantityinstock { get; set; }
 

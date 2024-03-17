@@ -4,32 +4,46 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using DemoMVVM.Context;
 using DemoMVVM.Models;
 using DemoMVVM.Models.ModelsView;
+using DemoMVVM.Services;
+using DemoMVVM.Views;
+using MessageBox.Avalonia;
+using MessageBox.Avalonia.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace DemoMVVM.ViewModels;
 
 public class MainViewModel : INotifyPropertyChanged
 {
+    public event AsyncEventHandler<Product> WinShowDialog;
+    public delegate Task AsyncEventHandler<T>(object sender, T e);
+
     public MainViewModel()
     {
-        Page = 1;
-        LoadManufacturers();
+        Init();
+    }
+
+    public async void Init()
+    {
+        await LoadManufacturers();
         LoadDataAsync();
     }
-    
-    private async Task LoadDataAsync()
+
+    public async void LoadDataAsync()
     {
         await LoadProducts();
     }
 
-    public async Task LoadProducts()
+    private async Task LoadProducts()
     {
         try
         {
@@ -67,7 +81,7 @@ public class MainViewModel : INotifyPropertyChanged
                     Product = x,
                     HasDiscount = x.Productdiscountamount > 0,
                     ColorBack = x.Productdiscountamount > 0 ? Constants.AdditionalColor : Brushes.White,
-                    ProductPhoto = await GetBitmap(x.Productphoto),
+                    ProductPhoto = await BaseServices.GetBitmap(x.Productphoto),
                     OldPrice = x.Productdiscountamount > 0 ? $"{x.Productcost:F2}" : "",
                     CurrentPrice = (decimal)(x.Productdiscountamount > 0
                         ? x.Productcost - x.Productcost * x.Productdiscountamount / 100
@@ -101,6 +115,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception e)
         {
+            IsLoading = false;
         }
     }
 
@@ -120,7 +135,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private int _page;
+    private int _page = 1;
     private int _itemOnPage = 10;
     private int _maxCount;
 
@@ -161,13 +176,10 @@ public class MainViewModel : INotifyPropertyChanged
         get => _selectedManufacturer;
         set
         {
-            if (value != null)
-            {
-                _selectedManufacturer = value;
-                Page = 1;
-                LoadDataAsync();
-                OnPropertyChanged();
-            }
+            _selectedManufacturer = value;
+            Page = 1;
+            LoadDataAsync();
+            OnPropertyChanged();
         }
     }
 
@@ -235,30 +247,57 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private async Task DeleteItemCommand(object item)
+    private async Task InvokeShowDialogEvent(Product product)
     {
-        var product = (item as ProductModel).Product;
+        AsyncEventHandler<Product> handler = WinShowDialog;
+        var invokeTasks = handler
+            .GetInvocationList()
+            .Select(singleHandler => ((AsyncEventHandler<Product>)singleHandler)?.Invoke(this, product))
+            .ToList();
+        await Task.WhenAll(invokeTasks);
     }
-
-    private async Task<Bitmap> GetBitmap(string path)
+    
+    private async Task EditItemCommand(object item)
     {
         try
         {
-            var bytes = File.ReadAllBytes(@"..\..\..\Resources\ProductPhotos\" + path);
-            using var memoryStream = new MemoryStream(bytes);
-            var bitmap = new Bitmap(memoryStream);
-            return bitmap;
+            var product = (item as ProductModel).Product;
+
+            await InvokeShowDialogEvent(product);
+            
+            LoadDataAsync();
         }
         catch (Exception e)
         {
-            var bytes = File.ReadAllBytes(@"..\..\..\Resources\picture.png");
-            using var memoryStream = new MemoryStream(bytes);
-            var bitmap = new Bitmap(memoryStream);
-            return bitmap;
+            
         }
     }
 
-    private async void LoadManufacturers()
+    private async Task DeleteItemCommand(object item)
+    {
+        try
+        {
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+    private async Task AddItemCommand(object item)
+    {
+        try
+        {
+            await InvokeShowDialogEvent(null);
+            
+            LoadDataAsync();
+        }
+        catch (Exception e)
+        {
+            
+        }
+    }
+
+    private async Task LoadManufacturers()
     {
         try
         {
@@ -274,7 +313,7 @@ public class MainViewModel : INotifyPropertyChanged
                 Manufacturers.Add(item);
             }
 
-            SelectedManufacturer = list[0];
+            SelectedManufacturer = Manufacturers[0];
         }
         catch (Exception e)
         {

@@ -2,7 +2,138 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:demoMvvm="clr-namespace:DemoMVVM"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="DemoMVVM.Views.AddEditWindow"
         Title="AddEditWindow">
+  <Grid ColumnDefinitions="*,*" RowDefinitions="*, Auto">
+             <StackPanel Margin="10" Spacing="5">
+               <StackPanel IsVisible="{Binding IsEdit}">
+                 <TextBlock>Артикул</TextBlock>
+                 <TextBox Text="{Binding Product.Productarticlenumber}"
+                          IsEnabled="False"></TextBox>
+               </StackPanel>
+               
+               <StackPanel>
+                 <TextBlock>Название</TextBlock>
+                 <TextBox Text="{Binding Product.Productname}"></TextBox>
+               </StackPanel>
+               
+              <Grid Grid.ColumnDefinitions="*,*">
+               <StackPanel Grid.Column="0"
+                           Margin="0,0,10,0">
+                 <TextBlock>Единица измерения</TextBlock>
+                 <ComboBox HorizontalAlignment="Stretch"
+                           Items="{Binding UnitMeasurements}"
+                           SelectedItem="{Binding SelectedUnitMeasurement}">
+                 </ComboBox>
+               </StackPanel>
+                
+                <StackPanel Grid.Column="1"
+                            Margin="10,0,0,0">
+                  <TextBlock>На складе (кол-во)</TextBlock>
+                  <NumericUpDown AllowSpin="False" ShowButtonSpinner="False"
+                                 Minimum="0"
+                                 Value="{Binding Product.Productquantityinstock}"></NumericUpDown>
+                </StackPanel>
+              </Grid>
+               
+               <Grid VerticalAlignment="Center"
+                     ColumnDefinitions="*,*,*">
+                 <StackPanel Grid.Column="0"
+                             Margin="0,0,10,0">
+                   <TextBlock>Макс. скидка</TextBlock>
+                   <NumericUpDown AllowSpin="False" ShowButtonSpinner="False"
+                                  Value="{Binding Product.Productmaxdiscountamount}"></NumericUpDown>
+                 </StackPanel>
+               
+                 <StackPanel Grid.Column="1"
+                             Margin="10,0,10,0">
+                   <TextBlock>Скидка</TextBlock>
+                   <NumericUpDown AllowSpin="False" ShowButtonSpinner="False"
+                                  Minimum="0" Maximum="99"
+                                  Value="{Binding Product.Productdiscountamount}"></NumericUpDown>
+                 </StackPanel>
+                 
+                 <StackPanel Grid.Column="2"
+                             Margin="10,0,0,0">
+                   <TextBlock>Стоимость</TextBlock>
+                   <NumericUpDown AllowSpin="False" ShowButtonSpinner="False"
+                                  Minimum="1"
+                                  Value="{Binding Product.Productcost}"></NumericUpDown>
+                 </StackPanel>
+               </Grid>
+               
+               <StackPanel>
+                 <TextBlock>Производитель</TextBlock>
+                 <ComboBox SelectedItem="{Binding SelectedManufacturer}"
+                           Items="{Binding Organizations}"
+                           HorizontalAlignment="Stretch">
+                   <ComboBox.ItemTemplate>
+                     <DataTemplate>
+                       <TextBlock Text="{Binding Organizationname}" />
+                     </DataTemplate>
+                   </ComboBox.ItemTemplate>
+                 </ComboBox>
+               </StackPanel>
+               
+               <StackPanel>
+                 <TextBlock>Поставщик</TextBlock>
+                 <ComboBox SelectedItem="{Binding SelectedVendor}"
+                           Items="{Binding Organizations}"
+                           HorizontalAlignment="Stretch">
+                   <ComboBox.ItemTemplate>
+                     <DataTemplate>
+                       <TextBlock Text="{Binding Organizationname}" />
+                     </DataTemplate>
+                   </ComboBox.ItemTemplate>
+                 </ComboBox>
+               </StackPanel>
+               
+               <StackPanel>
+                 <TextBlock>Категория</TextBlock>
+                 <ComboBox SelectedItem="{Binding SelectedCategory}"
+                           Items="{Binding Categoryes}"
+                           HorizontalAlignment="Stretch">
+                   <ComboBox.ItemTemplate>
+                     <DataTemplate>
+                       <TextBlock Text="{Binding Categoryname}" />
+                     </DataTemplate>
+                   </ComboBox.ItemTemplate>
+                 </ComboBox>
+               </StackPanel>
+               
+             </StackPanel>   
+          
+          <StackPanel Grid.Column="1"
+                      Margin="10"
+                      Spacing="10">
+            <StackPanel>
+              <TextBlock>Главное изображение</TextBlock>
+              <Image Height="100" Width="150"
+                     HorizontalAlignment="Left"
+                     Source="{Binding BitmapMainImage}">
+              </Image>
+              
+              <StackPanel Orientation="Horizontal" Spacing="30">
+                <Button Command="{Binding UploadPhoto}">Загрузить</Button>
+                <Button Command="{Binding DeletePhoto}">Удалить</Button>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel>
+              <TextBlock>Описание</TextBlock>
+              <TextBox Text="{Binding Product.Productdescription}"
+                       Height="200"
+                       TextWrapping="Wrap"></TextBox>
+            </StackPanel>
+          </StackPanel>
+          
+          <StackPanel Grid.Row="1"
+                      Spacing="30"
+                      Orientation="Horizontal"
+                      HorizontalAlignment="Center"
+                      Grid.ColumnSpan="2">
+            <Button>Сохранить</Button>
+          </StackPanel>
+        </Grid>
 </Window>

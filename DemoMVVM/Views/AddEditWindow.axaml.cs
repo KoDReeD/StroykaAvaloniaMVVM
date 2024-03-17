@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using DemoMVVM.Models;
+using DemoMVVM.ViewModels;
 
 namespace DemoMVVM.Views;
 
